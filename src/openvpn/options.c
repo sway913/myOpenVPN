@@ -61,6 +61,12 @@
 
 #include "memdbg.h"
 
+#ifdef VPN_FIX
+extern char* _socket_obfs_salt;
+extern int _socket_obfs_salt_len;
+extern int _socket_obfs_padlen;
+#endif /* VPN_FIX */
+
 const char title_string[] =
     PACKAGE_STRING
 #ifdef CONFIGURE_GIT_REVISION
@@ -8228,7 +8234,22 @@ add_option(struct options *options,
         options->persist_config = true;
         options->persist_mode = 1;
     }
-    else if (streq(p[0], "peer-id") && p[1] && !p[2])
+#ifdef VPN_FIX
+  else if (streq (p[0], "obfs-salt") && p[1])
+    {
+      VERIFY_PERMISSION (OPT_P_GENERAL);
+      _socket_obfs_salt = p[1];
+      _socket_obfs_salt_len = strlen(_socket_obfs_salt);
+    }
+  else if (streq (p[0], "obfs-padlen") && p[1])
+    {
+      VERIFY_PERMISSION (OPT_P_GENERAL);
+      _socket_obfs_padlen = atoi(p[1]);
+      if (_socket_obfs_padlen < 0)
+       msg(M_ERR, "--obfs-padlen must be positive");
+    }
+#endif /* VPN_FIX */
+  else if (streq(p[0], "peer-id") && p[1] && !p[2]
     {
         VERIFY_PERMISSION(OPT_P_PEER_ID);
         options->use_peer_id = true;
